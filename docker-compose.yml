@@ -1,0 +1,67 @@
+version: '3.3'
+
+services:
+  # --- BANCO DE DADOS ---
+  typebot-db:
+    image: postgres:16
+    restart: always
+    environment:
+      - POSTGRES_DB=typebot
+      - POSTGRES_USER=typebot
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - bot-network
+
+  # --- TYPEBOT ---
+  typebot-builder:
+    image: baptistearno/typebot-builder:latest
+    restart: always
+    ports:
+      - "8080:3000"
+    environment:
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
+      - ENCRYPTION_SECRET=${ENCRYPTION_SECRET}
+      - DATABASE_URL=postgresql://typebot:${POSTGRES_PASSWORD}@typebot-db:5432/typebot
+      - NEXTAUTH_URL=${NEXTAUTH_URL}
+      - NEXT_PUBLIC_VIEWER_URL=${NEXT_PUBLIC_VIEWER_URL}
+    networks:
+      - bot-network
+
+  # --- TYPEBOT CHAT ---
+  typebot-viewer:
+    image: baptistearno/typebot-viewer:latest
+    restart: always
+    ports:
+      - "8081:3000"
+    environment:
+      - ENCRYPTION_SECRET=${ENCRYPTION_SECRET}
+      - NEXTAUTH_URL=${NEXTAUTH_URL}
+      - DATABASE_URL=postgresql://typebot:${POSTGRES_PASSWORD}@typebot-db:5432/typebot
+      - NEXT_PUBLIC_VIEWER_URL=${NEXT_PUBLIC_VIEWER_URL}
+    networks:
+      - bot-network
+
+  # --- EVOLUTION API ---
+  evolution-api:
+    image: atendai/evolution-api:v1.8.2
+    restart: always
+    ports:
+      - "8082:8080"
+    environment:
+      - AUTHENTICATION_API_KEY=${AUTHENTICATION_API_KEY}
+      - DATABASE_ENABLED=false
+    volumes:
+      - evolution_data:/evolution/instances
+    networks:
+      - bot-network
+
+networks:
+  bot-network:
+    driver: bridge
+
+volumes:
+  db-data:
+  evolution_data:

@@ -1,0 +1,6 @@
+# Variáveis de ambiente
+.env
+
+# Volumes e pastas locais
+db-data/
+evolution_data/
