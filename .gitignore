@@ -4,3 +4,7 @@
 # Volumes e pastas locais
 db-data/
 evolution_data/
+
+# Arquivos de teste locais
+teste/
+teste.txt
